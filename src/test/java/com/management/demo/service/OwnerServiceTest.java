@@ -11,6 +11,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -37,9 +38,28 @@ class OwnerServiceTest {
     }
 
     @Test
+    void findAll_withOwners_returnsListOfOwnerResponse() {
+        Owner owner = Owner.builder().id(1L).name("Joao Silva").phone("51999999999").email("joao@email.com").build();
+        when(ownerRepository.findAll()).thenReturn(List.of(owner));
+
+        List<OwnerResponse> result = ownerService.findAll();
+
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).name()).isEqualTo("Joao Silva");
+    }
+
+    @Test
+    void findAll_withNoOwners_returnsEmptyList() {
+        when(ownerRepository.findAll()).thenReturn(List.of());
+
+        List<OwnerResponse> result = ownerService.findAll();
+
+        assertThat(result).isEmpty();
+    }
+
+    @Test
     void shouldThrowWhenOwnerNotFound() {
         when(ownerRepository.findById(99L)).thenReturn(Optional.empty());
-
         assertThatThrownBy(() -> ownerService.findById(99L))
                 .isInstanceOf(ResponseStatusException.class);
     }

@@ -1,3 +1,3 @@
 package com.management.demo.api.dto;
 
-public record EmployeeInRecordRequest(Long employeeId, String role) {}
+public record EmployeeInRecordRequest(Long employeeId, Long serviceTypeId) {}

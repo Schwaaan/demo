@@ -40,6 +40,15 @@ public class AnimalService {
     }
 
     @Transactional(readOnly = true)
+    public List<AnimalResponse> findByOwnerId(Long ownerId) {
+        if (!ownerRepository.existsById(ownerId))
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Owner not found: " + ownerId);
+        return animalRepository.findByOwnerId(ownerId).stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Transactional(readOnly = true)
     public AnimalResponse findById(Long id) {
         return animalRepository.findById(id)
                 .map(this::toResponse)

@@ -7,7 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +24,7 @@ public class ServiceRecord extends Auditable {
     private Long id;
 
     @Column(nullable = false)
-    private LocalDate date;
+    private LocalDateTime date;
 
     private String notes;
 
@@ -35,11 +35,7 @@ public class ServiceRecord extends Auditable {
     @JoinColumn(name = "animal_id", nullable = false)
     private Animal animal;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "service_type_id", nullable = false)
-    private ServiceType serviceType;
-
     @Builder.Default
     @OneToMany(mappedBy = "serviceRecord", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ServiceRecordEmployee> employees = new ArrayList<>();
+    private List<ServiceRecordEmployee> serviceRecordEmployee = new ArrayList<>();
 }

@@ -13,6 +13,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -29,32 +31,38 @@ public class ServiceRecordService {
         var animal = animalRepository.findById(request.animalId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Animal not found: " + request.animalId()));
 
-        var serviceType = serviceTypeRepository.findById(request.serviceTypeId())
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ServiceType not found: " + request.serviceTypeId()));
-
         ServiceRecord record = ServiceRecord.builder()
                 .date(request.date())
                 .notes(request.notes())
                 .gainAmount(request.gainAmount())
                 .animal(animal)
-                .serviceType(serviceType)
                 .build();
 
         List<ServiceRecordEmployee> employeeLinks = request.employees().stream()
                 .map(e -> {
                     var emp = employeeRepository.findById(e.employeeId())
                             .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Employee not found: " + e.employeeId()));
+                    var svcType = serviceTypeRepository.findById(e.serviceTypeId())
+                            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "ServiceType not found: " + e.serviceTypeId()));
                     return ServiceRecordEmployee.builder()
                             .serviceRecord(record)
                             .employee(emp)
-                            .role(e.role())
+                            .serviceType(svcType)
                             .build();
                 })
                 .toList();
 
-        record.getEmployees().addAll(employeeLinks);
+        record.getServiceRecordEmployee().addAll(employeeLinks);
 
         return toResponse(serviceRecordRepository.save(record));
+    }
+
+    @Transactional(readOnly = true)
+    public List<ServiceRecordResponse> findAll(LocalDateTime startDate, LocalDateTime endDate) {
+        var records = (startDate != null && endDate != null)
+                ? serviceRecordRepository.findByDateBetween(startDate, endDate)
+                : serviceRecordRepository.findAll();
+        return records.stream().map(this::toResponse).toList();
     }
 
     @Transactional(readOnly = true)
@@ -65,19 +73,20 @@ public class ServiceRecordService {
     }
 
     ServiceRecordResponse toResponse(ServiceRecord sr) {
-        var cost = sr.getServiceType().getCost();
-        var profit = sr.getGainAmount().subtract(cost);
-
-        List<EmployeeInRecordResponse> employees = sr.getEmployees().stream()
-                .map(e -> new EmployeeInRecordResponse(e.getEmployee().getId(), e.getEmployee().getName(), e.getRole()))
+        List<EmployeeInRecordResponse> serviceRecordEmployee = sr.getServiceRecordEmployee().stream()
+                .map(e -> new EmployeeInRecordResponse(
+                        e.getEmployee().getId(),
+                        e.getEmployee().getName(),
+                        e.getServiceType().getId(),
+                        e.getServiceType().getName()
+                ))
                 .toList();
 
-        var stResponse = new ServiceTypeResponse(
-                sr.getServiceType().getId(),
-                sr.getServiceType().getName(),
-                sr.getServiceType().getDescription(),
-                cost
-        );
+        var cost = sr.getServiceRecordEmployee().stream()
+                .map(e -> e.getServiceType().getCost())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        var profit = sr.getGainAmount().subtract(cost);
 
         return new ServiceRecordResponse(
                 sr.getId(),
@@ -88,8 +97,9 @@ public class ServiceRecordService {
                 profit,
                 sr.getAnimal().getId(),
                 sr.getAnimal().getName(),
-                stResponse,
-                employees
+                sr.getAnimal().getOwner().getId(),
+                sr.getAnimal().getOwner().getName(),
+                serviceRecordEmployee
         );
     }
 }

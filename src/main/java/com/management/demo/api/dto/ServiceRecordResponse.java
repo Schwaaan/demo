@@ -1,18 +1,19 @@
 package com.management.demo.api.dto;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 
 public record ServiceRecordResponse(
         Long id,
-        LocalDate date,
+        LocalDateTime date,
         String notes,
         BigDecimal gainAmount,
         BigDecimal cost,
         BigDecimal profit,
         Long animalId,
         String animalName,
-        ServiceTypeResponse serviceType,
-        List<EmployeeInRecordResponse> employees
+        Long ownerId,
+        String ownerName,
+        List<EmployeeInRecordResponse> serviceRecordEmployee
 ) {}

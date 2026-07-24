@@ -26,6 +26,7 @@ public class ServiceRecordEmployee {
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
 
-    @Column(nullable = false)
-    private String role;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "service_type_id", nullable = false)
+    private ServiceType serviceType;
 }

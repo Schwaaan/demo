@@ -1096,11 +1096,16 @@ import static org.mockito.Mockito.when;
 @ExtendWith(MockitoExtension.class)
 class ServiceRecordServiceTest {
 
-    @Mock private ServiceRecordRepository serviceRecordRepository;
-    @Mock private AnimalRepository animalRepository;
-    @Mock private ServiceTypeRepository serviceTypeRepository;
-    @Mock private EmployeeRepository employeeRepository;
-    @InjectMocks private ServiceRecordService serviceRecordService;
+    @Mock
+    private ServiceRecordRepository serviceRecordRepository;
+    @Mock
+    private AnimalRepository animalRepository;
+    @Mock
+    private ServiceTypeRepository serviceTypeRepository;
+    @Mock
+    private EmployeeRepository employeeRepository;
+    @InjectMocks
+    private ServiceRecordService serviceRecordService;
 
     @Test
     void shouldCreateServiceRecord() {
@@ -1122,7 +1127,7 @@ class ServiceRecordServiceTest {
             sr = ServiceRecord.builder()
                     .id(10L).date(sr.getDate()).notes(sr.getNotes())
                     .gainAmount(sr.getGainAmount()).animal(animal)
-                    .serviceType(serviceType).employees(sr.getEmployees())
+                    .serviceType(serviceType).employees(sr.getServiceRecordEmployee())
                     .build();
             return sr;
         });
@@ -1193,7 +1198,7 @@ public class ServiceRecordService {
                             .build();
                 }).toList();
 
-        record.getEmployees().addAll(employeeLinks);
+        record.getServiceRecordEmployee().addAll(employeeLinks);
 
         ServiceRecord saved = serviceRecordRepository.save(record);
         return toResponse(saved);
@@ -1203,7 +1208,7 @@ public class ServiceRecordService {
         var cost = sr.getServiceType().getCost();
         var profit = sr.getGainAmount().subtract(cost);
 
-        List<EmployeeInRecordResponse> employees = sr.getEmployees().stream()
+        List<EmployeeInRecordResponse> employees = sr.getServiceRecordEmployee().stream()
                 .map(e -> new EmployeeInRecordResponse(
                         e.getEmployee().getId(), e.getEmployee().getName(), e.getRole()))
                 .toList();

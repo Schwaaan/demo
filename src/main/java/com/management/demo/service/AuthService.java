@@ -46,7 +46,7 @@ public class AuthService {
 
     public LoginResponse login(LoginRequest request) {
         Authentication auth = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(request.username(), request.password()));
+                new UsernamePasswordAuthenticationToken(request.email(), request.password()));
 
         String role = auth.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
